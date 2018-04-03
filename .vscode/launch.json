@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/grotesque/index.sync.js"
+            "program": "${workspaceFolder}/grotesque/index.js"
         }
     ]
 }
