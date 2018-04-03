@@ -18,4 +18,8 @@ If yarn build fails after grotesque, run it another time.
 If it's not help - add package to .grotesque - and run again
 
 Settings:
-.grotesque - settings, pass there an array of packages to transpile, if its just a name - it will recursevly tries to transpile it, if its "..[package]" it will transpile not main section of package.json, but parent, and finally, you can pass "./node_modules/[package1]/node_modules/[package2]/src" - to transpile direct folder
+.grotesque - settings, pass there an array of packages to transpile:
+
+1. if its just a name - it will recursevly tries to transpile - ["cids"]
+2. if its "..[package]" it will transpile not main section of package.json, but parent,
+3. You can pass "./node_modules/[package1]/node_modules/[package2]/src" - to transpile direct folder
