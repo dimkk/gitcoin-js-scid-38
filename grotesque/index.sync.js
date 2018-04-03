@@ -6,8 +6,12 @@ const exec = require('child_process').exec;
 const babel = appDir + '/node_modules/.bin/babel '
 let cache = []
 
-const checkMain = (appDir, p, includeParentFolder) => {
+const checkMain = (appDir, p, includeParentFolder, directPath) => {
 
+    if (directPath) {
+        checkAndTranspile(directPath)
+        return;
+    }
 
     const pdir = appDir + "/node_modules/" + p
     console.log("checking package " + pdir)
@@ -32,8 +36,8 @@ const checkMain = (appDir, p, includeParentFolder) => {
     function rec() {
         for (property in pjson.dependencies) {
             console.log(p + " deps " + property)
-            checkMain(appDir, property)
             checkMain(pdir, property)
+            checkMain(appDir, property)
         }
     }
 
@@ -43,18 +47,8 @@ const checkMain = (appDir, p, includeParentFolder) => {
             ? pdir + "/" + path.parse(pjson.main).dir
             : pdir + "/" + path.join(path.parse(pjson.main).dir, "..")
         console.log("main section - " + main)
-        const errors = checker("es5", [main + "/**/*.js"])
-        if (errors.length > 0) {
-            console.log("fixing")
-            let dotnetPs = exec(babel + main + ' -d ' + main +' --presets "es2015"')
-            dotnetPs.stdout.on("data", function (data) {
-                console.log(data.toString());
-            });
-            dotnetPs.stderr.on("data", function (data) {
-                console.error(data.toString());
-            });
 
-        }
+        checkAndTranspile(main)
 
 
         rec()
@@ -62,19 +56,36 @@ const checkMain = (appDir, p, includeParentFolder) => {
 
 }
 console.log(appDir)
-const data = fs.readFileSync(appDir + "/.grotesque")
-const go = (err, data) => {
+const data = fs.readFile(appDir + "/.grotesque", (err, data) => {
     if (err) throw "no .grotesque file with array of npm modules provided"
     packages = JSON.parse(data)
+    let directPath = ""
     packages.forEach(p => {
         let includeParentFolder = false
         if (p.indexOf("..") != -1) {
             includeParentFolder = true
             p = p.replace(/../, "")
         }
-        checkMain(appDir, p, includeParentFolder)
+        if (p.indexOf("./node_modules/") != -1) {
+            directPath = p
+        }
+        checkMain(appDir, p, includeParentFolder, directPath)
     })
     fs.writeFile(appDir + "/.grotescure_cache.json", JSON.stringify(cache))
 
+})
+
+function checkAndTranspile(main){
+    const errors = checker("es5", [main + "/**/*.js"])
+    if (errors.length > 0) {
+        console.log("fixing")
+        let dotnetPs = exec(babel + main + ' -d ' + main +' --presets "es2015"')
+        dotnetPs.stdout.on("data", function (data) {
+            console.log(data.toString());
+        });
+        dotnetPs.stderr.on("data", function (data) {
+            console.error(data.toString());
+        });
+
+    }
 }
-go(null, data)
