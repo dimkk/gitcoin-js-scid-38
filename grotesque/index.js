@@ -31,17 +31,8 @@ const checkMain = (appDir, p, includeParentFolder, directPath) => {
         console.log(err)
         pjson = {main: false}
     }
-        
 
-    function rec() {
-        for (property in pjson.dependencies) {
-            console.log(p + " deps " + property)
-            checkMain(pdir, property)
-            checkMain(appDir, property)
-        }
-    }
-
-    if (!pjson.main) rec()
+    if (!pjson.main) rec(pjson, p, pdir, appDir)
     else {
         const main = !includeParentFolder
             ? pdir + "/" + path.parse(pjson.main).dir
@@ -51,7 +42,7 @@ const checkMain = (appDir, p, includeParentFolder, directPath) => {
         checkAndTranspile(main)
 
 
-        rec()
+        rec(pjson, p, pdir, appDir)
     }
 
 }
@@ -69,6 +60,14 @@ function checkAndTranspile(main){
             console.error(data.toString());
         });
 
+    }
+}
+
+function rec(pjson, p, pdir, appDir) {
+    for (property in pjson.dependencies) {
+        console.log(p + " deps " + property)
+        if (pdir) checkMain(pdir, property)
+        checkMain(appDir, property)
     }
 }
 
@@ -94,6 +93,7 @@ fs.readFile(appDir + "/.grotesque", (err, data) => {
         }
         
     })
-    fs.writeFile(appDir + "/.grotescure_cache.json", JSON.stringify(cache))
+    //fs.writeFile(appDir + "/.grotescure_cache.json", JSON.stringify(cache))
 
 })
+
